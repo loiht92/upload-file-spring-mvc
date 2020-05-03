@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,7 +48,8 @@ public class MyFileUploadController {
 
     //POST: xu li upload
     @RequestMapping(value = "/uploadOneFile", method = RequestMethod.POST)
-    public String uploadOneFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm){
+    public String uploadOneFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm) throws UnsupportedEncodingException {
+        request.setCharacterEncoding("UTF-8");
         return this.doUpload(request, model, myUploadForm);
     }
 
@@ -59,15 +62,16 @@ public class MyFileUploadController {
     }
     //POST: xu li upload
     @RequestMapping(value = "/uploadMultiFile", method = RequestMethod.POST)
-    public String uploadMultiFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm){
+    public String uploadMultiFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm) throws UnsupportedEncodingException {
         return this.doUpload(request, model, myUploadForm);
     }
 
-    private String doUpload(HttpServletRequest request, Model model, MyUploadForm myUploadForm){
+    private String doUpload(HttpServletRequest request, Model model, MyUploadForm myUploadForm) throws UnsupportedEncodingException {
         String description = myUploadForm.getDescription();
         System.out.println("Description:" + description);
         // Thu muc goc upload file
         String uploadRootPath = request.getServletContext().getRealPath("upload");
+        request.setCharacterEncoding("UTF-8");
         System.out.println("uploadRootPath=" + uploadRootPath);
         File uploadRootDir = new File(uploadRootPath);
         // tao thu muc goc upload neu no khong ton tai
@@ -78,7 +82,12 @@ public class MyFileUploadController {
         Map<File, String> uploadedFiles = new HashMap<>();
         for (MultipartFile fileData : fileDatas){
             //Ten file goc tai client
+//            byte[] bytes =  .getSignature().getBytes(StandardCharsets.ISO_8859_1);
+//            String decodedSignature = new String(bytes, StandardCharsets.UTF_8);
+//            mailBox.setSignature(decodedSignature);
+
             String name = fileData.getOriginalFilename();
+            //request.setCharacterEncoding("UTF-8");
             System.out.println("Client File Name = " + name);
             if (name != null && name.length() > 0){
                 try {

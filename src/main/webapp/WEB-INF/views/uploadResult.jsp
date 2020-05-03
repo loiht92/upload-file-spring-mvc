@@ -21,7 +21,7 @@ Description: ${description}
 
 <%--@elvariable id="uploadedFile" type="form"--%>
 FileDatas upload:<br/><br/>
-<c:forEach items="${uploadedFile}" var="file">- ${file}<br/><br/>
+<c:forEach items="${uploadedFile}" var="file">- ${file}<br/><br/> //uploadedFile phải trùng với thuộc tính addttribute bên controller//
 </c:forEach>
 </body>
 </html>
