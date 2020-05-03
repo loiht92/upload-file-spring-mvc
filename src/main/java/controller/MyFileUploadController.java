@@ -1,13 +1,8 @@
 package controller;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
+import form.MyUploadForm;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -15,117 +10,99 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 
-import form.MyUploadForm;
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class MyFileUploadController {
-
-    // Phương thức này được gọi mỗi lần có Submit.
+    // phuong thuc nay duoc goi moi lan co submit
     @InitBinder
-    public void initBinder(WebDataBinder dataBinder) {
+    public void initBinder(WebDataBinder dataBinder){
         Object target = dataBinder.getTarget();
-        if (target == null) {
+        if (target == null){
             return;
         }
         System.out.println("Target=" + target);
-
-        if (target.getClass() == MyUploadForm.class) {
-
-            // Đăng ký để chuyển đổi giữa các đối tượng multipart thành byte[]
+        if (target.getClass() == MyUploadForm.class){
             dataBinder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
         }
     }
-
-    // GET: Hiển thị trang form upload
-    @RequestMapping(value = "/upload", method = RequestMethod.GET)
-    public String uploadOneFileHandler(Model model) {
-
+    //GET: hien thi trang form upload
+    @RequestMapping(value = "/uploadOneFile", method = RequestMethod.GET)
+    public String uploadOneFileHandler(Model model){
         MyUploadForm myUploadForm = new MyUploadForm();
         model.addAttribute("myUploadForm", myUploadForm);
-
-        // Forward to "/WEB-INF/pages/uploadOneFile.jsp".
         return "uploadOneFile";
     }
 
-    // POST: Sử lý Upload
-    @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public String uploadOneFileHandlerPOST(HttpServletRequest request, //
-                                           Model model, //
-                                           @ModelAttribute("myUploadForm") MyUploadForm myUploadForm) {
-
+    //POST: xu li upload
+    @RequestMapping(value = "/uploadOneFile", method = RequestMethod.POST)
+    public String uploadOneFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm){
         return this.doUpload(request, model, myUploadForm);
-
     }
 
-    // GET: Hiển thị trang form upload
-    @RequestMapping(value = "/upload/multi", method = RequestMethod.GET)
-    public String uploadMultiFileHandler(Model model) {
-
+    //GET:Hien thi trang form upload
+    @RequestMapping(value = "/uploadMultiFile", method = RequestMethod.GET)
+    public String uploadMultiFileHandler(Model model){
         MyUploadForm myUploadForm = new MyUploadForm();
         model.addAttribute("myUploadForm", myUploadForm);
-
-        // Forward to "/WEB-INF/pages/uploadMultiFile.jsp".
         return "uploadMultiFile";
     }
-
-    // POST: Sử lý Upload
+    //POST: xu li upload
     @RequestMapping(value = "/uploadMultiFile", method = RequestMethod.POST)
-    public String uploadMultiFileHandlerPOST(HttpServletRequest request, //
-                                             Model model, //
-                                             @ModelAttribute("myUploadForm") MyUploadForm myUploadForm) {
-
+    public String uploadMultiFileHandlerPOST(HttpServletRequest request, Model model, @ModelAttribute("myUploadForm")MyUploadForm myUploadForm){
         return this.doUpload(request, model, myUploadForm);
-
     }
 
-    private String doUpload(HttpServletRequest request, Model model, //
-                            MyUploadForm myUploadForm) {
-
+    private String doUpload(HttpServletRequest request, Model model, MyUploadForm myUploadForm){
         String description = myUploadForm.getDescription();
-        System.out.println("Description: " + description);
-
-        // Thư mục gốc upload file.
+        System.out.println("Description:" + description);
+        // Thu muc goc upload file
         String uploadRootPath = request.getServletContext().getRealPath("upload");
         System.out.println("uploadRootPath=" + uploadRootPath);
-
         File uploadRootDir = new File(uploadRootPath);
-        //
-        // Tạo thư mục gốc upload nếu nó không tồn tại.
-        if (!uploadRootDir.exists()) {
+        // tao thu muc goc upload neu no khong ton tai
+        if (!uploadRootDir.exists()){
             uploadRootDir.mkdirs();
         }
-        CommonsMultipartFile[] fileDatas = myUploadForm.getFileDatas();
-        //
-        Map<File, String> uploadedFiles = new HashMap();
-        for (CommonsMultipartFile fileData : fileDatas) {
-
-            // Tên file gốc tại Client.
+        MultipartFile[] fileDatas = myUploadForm.getFileDatas();
+        Map<File, String> uploadedFiles = new HashMap<>();
+        for (MultipartFile fileData : fileDatas){
+            //Ten file goc tai client
             String name = fileData.getOriginalFilename();
             System.out.println("Client File Name = " + name);
-
-            if (name != null && name.length() > 0) {
+            if (name != null && name.length() > 0){
                 try {
-                    // Tạo file tại Server.
+                    //tao file tai sever
                     File serverFile = new File(uploadRootDir.getAbsolutePath() + File.separator + name);
-
-                    // Luồng ghi dữ liệu vào file trên Server.
+                    //luong ghi du lieu vao file tren server
                     BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
                     stream.write(fileData.getBytes());
                     stream.close();
-                    //
                     uploadedFiles.put(serverFile, name);
                     System.out.println("Write file: " + serverFile);
-                } catch (Exception e) {
-                    System.out.println("Error Write file: " + name);
+                }catch (Exception e){
+                    System.out.println("Error write file: " + name);
                 }
             }
         }
         model.addAttribute("description", description);
-        model.addAttribute("uploadedFiles", uploadedFiles);
+        model.addAttribute("uploadedFile", uploadedFiles);
         return "uploadResult";
     }
-
+    @Bean
+    public CommonsMultipartResolver multipartResolver(){
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+        multipartResolver.setMaxUploadSizePerFile(10000000);
+        return multipartResolver;
+    }
 }
